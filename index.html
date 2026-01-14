@@ -3,48 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moje Fiszki Mobilne PRO</title>
+    <title>Fiszki Chemiczne PRO + Dark Mode</title>
     <style>
         :root {
-            --bg: #f8f9fa;
+            --bg: #f0f2f5;
+            --box-bg: #ffffff;
+            --text: #2c3e50;
             --primary: #4a90e2;
-            --secondary: #2c3e50;
-            --success: #27ae60;
+            --card-face: #ffffff;
+            --card-text: #2c3e50;
+            --card-back-bg: #2c3e50;
+            --card-back-text: #ffffff;
+            --border: #dddddd;
+        }
+
+        /* KOLORY DLA TRYBU CIEMNEGO */
+        body.dark-mode {
+            --bg: #121212;
+            --box-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --primary: #357abd;
+            --card-face: #2d2d2d;
+            --card-text: #e0e0e0;
+            --card-back-bg: #3d3d3d;
+            --card-back-text: #ffffff;
+            --border: #444444;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
+            color: var(--text);
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 15px;
             overscroll-behavior-y: contain;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Przycisk Trybu Ciemnego */
+        .theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--box-bg);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .box {
-            background: white;
+            background: var(--box-bg);
             padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 15px;
             width: 100%;
             max-width: 400px;
             box-sizing: border-box;
+            margin-top: 40px;
         }
 
-        h3 { margin-top: 0; font-size: 1.1rem; color: var(--secondary); }
+        h3 { margin-top: 0; font-size: 1.1rem; }
 
         input, button {
             width: 100%;
             padding: 12px;
             margin: 5px 0;
             border-radius: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
             font-size: 16px;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+            background: var(--box-bg);
+            color: var(--text);
         }
 
         button {
@@ -52,7 +92,7 @@
             color: white;
             border: none;
             font-weight: bold;
-            touch-action: manipulation;
+            cursor: pointer;
         }
 
         .flashcard-container {
@@ -83,17 +123,18 @@
             align-items: center;
             justify-content: center;
             border-radius: 20px;
-            background: white;
+            background: var(--card-face);
+            color: var(--card-text);
             padding: 15px;
             box-sizing: border-box;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
         }
 
         .face.back {
             transform: rotateY(180deg);
-            background: var(--secondary);
-            color: white;
+            background: var(--card-back-bg);
+            color: var(--card-back-text);
             font-size: 1.5rem;
             text-align: center;
         }
@@ -114,7 +155,9 @@
         .hidden { display: none; }
     </style>
 </head>
-<body>
+<body id="body">
+
+    <button class="theme-toggle" onclick="toggleDarkMode()" id="themeBtn">🌙</button>
 
     <div class="box">
         <h3>Dodaj fiszkę / Import</h3>
@@ -146,7 +189,19 @@
         let flashcards = JSON.parse(localStorage.getItem('myFlashcards')) || [];
         let currentIndex = 0;
 
-        // NOWA FUNKCJA Z KOMPRESJĄ
+        // TRYB CIEMNY LOGIKA
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeBtn').innerText = '☀️';
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+            document.getElementById('themeBtn').innerText = isDark ? '☀️' : '🌙';
+        }
+
+        // DODAWANIE Z KOMPRESJĄ
         async function addFlashcard() {
             const fileInput = document.getElementById('imageInput');
             const file = fileInput.files[0];
@@ -157,25 +212,17 @@
             if (file && text) {
                 btn.innerText = "Przetwarzanie...";
                 btn.disabled = true;
-
                 try {
                     const compressedImg = await resizeImage(file);
                     flashcards.push({ img: compressedImg, text: text });
                     save();
                     textInput.value = "";
                     fileInput.value = "";
-                } catch (error) {
-                    alert("Błąd podczas dodawania. Spróbuj mniejszego zdjęcia.");
-                } finally {
-                    btn.innerText = "+ Dodaj";
-                    btn.disabled = false;
-                }
-            } else {
-                alert("Wybierz zdjęcie i wpisz opis!");
-            }
+                } catch (e) { alert("Błąd zapisu!"); }
+                finally { btn.innerText = "+ Dodaj"; btn.disabled = false; }
+            } else { alert("Wypełnij pola!"); }
         }
 
-        // FUNKCJA ZMNIEJSZAJĄCA ZDJĘCIE
         function resizeImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -183,19 +230,12 @@
                     const img = new Image();
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        const max_size = 800; // Zmniejszamy do max 800px
-
-                        if (width > height) {
-                            if (width > max_size) { height *= max_size / width; width = max_size; }
-                        } else {
-                            if (height > max_size) { width *= max_size / height; height = max_size; }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
+                        let width = img.width, height = img.height, max = 800;
+                        if (width > height && width > max) { height *= max / width; width = max; }
+                        else if (height > max) { width *= max / height; height = max; }
+                        canvas.width = width; canvas.height = height;
                         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Jakość 70% - idealna na telefon
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                     img.src = e.target.result;
                 };
@@ -204,16 +244,8 @@
         }
 
         function flip() { document.getElementById('mainCard').classList.toggle('flipped'); }
-
-        function save() {
-            try {
-                localStorage.setItem('myFlashcards', JSON.stringify(flashcards));
-                render();
-            } catch (e) {
-                alert("Pamięć pełna! Usuń kilka starych fiszek.");
-            }
-        }
-
+        function save() { localStorage.setItem('myFlashcards', JSON.stringify(flashcards)); render(); }
+        
         function render() {
             const player = document.getElementById('player');
             const nav = document.getElementById('nav');
@@ -224,10 +256,7 @@
                 document.getElementById('displayText').innerText = flashcards[currentIndex].text;
                 document.getElementById('counter').innerText = `${currentIndex + 1}/${flashcards.length}`;
                 document.getElementById('mainCard').classList.remove('flipped');
-            } else {
-                player.style.display = "none";
-                nav.classList.add('hidden');
-            }
+            } else { player.style.display = "none"; nav.classList.add('hidden'); }
         }
 
         function changeCard(step) {
@@ -236,29 +265,17 @@
         }
 
         function deleteCurrent() {
-            if(confirm("Usunąć tę fiszkę?")) { 
-                flashcards.splice(currentIndex, 1); 
-                if (currentIndex >= flashcards.length) currentIndex = 0;
-                save(); 
-            }
+            if(confirm("Usunąć?")) { flashcards.splice(currentIndex, 1); currentIndex = 0; save(); }
         }
 
         function exportToFile() {
             const blob = new Blob([JSON.stringify(flashcards)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'fiszki.json'; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fiszki.json'; a.click();
         }
 
         function importFromFile(e) {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    flashcards = JSON.parse(event.target.result);
-                    save();
-                    alert("Zaimportowano pomyślnie!");
-                } catch(err) { alert("Błąd pliku!"); }
-            };
+            reader.onload = (ev) => { flashcards = JSON.parse(ev.target.result); save(); };
             reader.readAsText(e.target.files[0]);
         }
 
