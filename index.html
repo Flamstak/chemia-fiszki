@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mój Kreator Fiszek</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --primary: #4a90e2;
+            --secondary: #2c3e50;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Sekcja tworzenia */
+        .creator-box {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #357abd; }
+        .btn-delete { background: #e74c3c; margin-top: 10px; }
+
+        /* Widok fiszki */
+        .flashcard-container {
+            perspective: 1000px;
+            width: 350px;
+            height: 450px;
+            display: none; /* Ukryte, jeśli brak fiszek */
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .face.back {
+            transform: rotateY(180deg);
+            background: var(--secondary);
+            color: white;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .face img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>Kreator Fiszek Chemicznych</h1>
+
+    <div class="creator-box">
+        <h3>Dodaj nową fiszkę</h3>
+        <input type="file" id="imageInput" accept="image/*">
+        <input type="text" id="textInput" placeholder="Opis fiszki (np. nazwa reakcji)">
+        <button onclick="addFlashcard()">Dodaj do zestawu</button>
+    </div>
+
+    <div id="player" class="flashcard-container" onclick="this.querySelector('.card').classList.toggle('flipped')">
+        <div class="card">
+            <div class="face front">
+                <img id="displayImg" src="" alt="Fiszka">
+            </div>
+            <div class="face back">
+                <p id="displayText"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="nav" class="controls hidden">
+        <button onclick="changeCard(-1)"> Poprzednia </button>
+        <span id="counter">1 / 1</span>
+        <button onclick="changeCard(1)"> Następna </button>
+        <button class="btn-delete" onclick="deleteCurrent()">Usuń tę kartę</button>
+    </div>
+
+    <script>
+        let flashcards = JSON.parse(localStorage.getItem('myFlashcards')) || [];
+        let currentIndex = 0;
+
+        function addFlashcard() {
+            const fileInput = document.getElementById('imageInput');
+            const textInput = document.getElementById('textInput');
+            
+            if (fileInput.files && fileInput.files[0] && textInput.value) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const newCard = {
+                        img: e.target.result, // Zapisuje obraz jako tekst (Base64)
+                        text: textInput.value
+                    };
+                    
+                    flashcards.push(newCard);
+                    saveAndRefresh();
+                    
+                    // Czyścimy pola
+                    fileInput.value = "";
+                    textInput.value = "";
+                };
+                
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                alert("Wybierz zdjęcie i wpisz opis!");
+            }
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('myFlashcards', JSON.stringify(flashcards));
+            renderCard();
+        }
+
+        function renderCard() {
+            const player = document.getElementById('player');
+            const nav = document.getElementById('nav');
+            
+            if (flashcards.length > 0) {
+                player.style.display = "block";
+                nav.classList.remove('hidden');
+                
+                document.getElementById('displayImg').src = flashcards[currentIndex].img;
+                document.getElementById('displayText').innerText = flashcards[currentIndex].text;
+                document.getElementById('counter').innerText = `${currentIndex + 1} / ${flashcards.length}`;
+                
+                // Reset obrotu karty
+                player.querySelector('.card').classList.remove('flipped');
+            } else {
+                player.style.display = "none";
+                nav.classList.add('hidden');
+            }
+        }
+
+        function changeCard(step) {
+            currentIndex = (currentIndex + step + flashcards.length) % flashcards.length;
+            renderCard();
+        }
+
+        function deleteCurrent() {
+            if (confirm("Na pewno usunąć tę fiszkę?")) {
+                flashcards.splice(currentIndex, 1);
+                if (currentIndex >= flashcards.length) currentIndex = 0;
+                saveAndRefresh();
+            }
+        }
+
+        // Start aplikacji
+        renderCard();
+    </script>
+
+</body>
+</html>
