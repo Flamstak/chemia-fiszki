@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fiszki Chemiczne PRO + Dark Mode</title>
+    <title>Chemia Fiszki | Modern Fix</title>
     <style>
+        /* Globalna poprawka na wymiary */
+        * { box-sizing: border-box; }
+
         :root {
-            --bg: #f0f2f5;
-            --box-bg: #ffffff;
-            --text: #2c3e50;
-            --primary: #4a90e2;
-            --card-face: #ffffff;
-            --card-text: #2c3e50;
-            --card-back-bg: #2c3e50;
-            --card-back-text: #ffffff;
-            --border: #dddddd;
+            --bg: #fdfdfd;
+            --surface: #ffffff;
+            --text: #1d1d1f;
+            --primary: #0071e3;
+            --success: #34c759;
+            --danger: #ff3b30;
+            --border: rgba(0,0,0,0.1);
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --card-radius: 24px;
         }
 
-        /* KOLORY DLA TRYBU CIEMNEGO */
         body.dark-mode {
-            --bg: #121212;
-            --box-bg: #1e1e1e;
-            --text: #e0e0e0;
-            --primary: #357abd;
-            --card-face: #2d2d2d;
-            --card-text: #e0e0e0;
-            --card-back-bg: #3d3d3d;
-            --card-back-text: #ffffff;
-            --border: #444444;
+            --bg: #000000;
+            --surface: #1c1c1e;
+            --text: #f5f5f7;
+            --border: rgba(255,255,255,0.1);
+            --shadow: 0 10px 40px rgba(0,0,0,0.4);
         }
 
         body {
@@ -38,70 +36,65 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px;
-            overscroll-behavior-y: contain;
-            transition: background 0.3s, color 0.3s;
+            padding: 20px;
+            transition: all 0.4s ease;
+            min-height: 100vh;
         }
 
-        /* Przycisk Trybu Ciemnego */
+        header {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
         .theme-toggle {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--box-bg);
+            background: var(--surface);
             border: 1px solid var(--border);
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
             cursor: pointer;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
         }
 
-        .box {
-            background: var(--box-bg);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
+        .progress-container {
             width: 100%;
             max-width: 400px;
-            box-sizing: border-box;
-            margin-top: 40px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
         }
 
-        h3 { margin-top: 0; font-size: 1.1rem; }
-
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin: 5px 0;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            font-size: 16px;
-            box-sizing: border-box;
-            background: var(--box-bg);
-            color: var(--text);
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background: var(--success);
+            transition: width 0.5s ease;
         }
 
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
+        /* Nowy licznik tekstowy */
+        #counterText {
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.7;
+            margin-bottom: 20px;
         }
 
         .flashcard-container {
-            perspective: 1000px;
-            width: 90vw;
-            max-width: 350px;
-            height: 400px;
+            perspective: 1200px;
+            width: 100%;
+            max-width: 380px;
+            height: 420px;
             display: none;
-            margin-top: 10px;
         }
 
         .card {
@@ -109,7 +102,8 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
         }
 
         .card.flipped { transform: rotateY(180deg); }
@@ -120,76 +114,142 @@
             height: 100%;
             backface-visibility: hidden;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 20px;
-            background: var(--card-face);
-            color: var(--card-text);
-            padding: 15px;
-            box-sizing: border-box;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-radius: var(--card-radius);
+            background: var(--surface);
+            padding: 20px;
+            box-shadow: var(--shadow);
             border: 1px solid var(--border);
+            text-align: center;
         }
 
         .face.back {
             transform: rotateY(180deg);
-            background: var(--card-back-bg);
-            color: var(--card-back-text);
+            background: var(--primary);
+            color: white;
             font-size: 1.5rem;
-            text-align: center;
+            font-weight: 600;
         }
 
-        .face img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px; }
+        .face img {
+            max-width: 100%;
+            max-height: 80%;
+            border-radius: 12px;
+            object-fit: contain;
+        }
 
         .controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
             width: 100%;
             max-width: 400px;
         }
 
-        .btn-small { flex: 1; font-size: 0.9rem; }
-        .counter { font-weight: bold; min-width: 60px; text-align: center; }
-        .hidden { display: none; }
+        .btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        .btn-primary { background: var(--primary); color: white; border: none; }
+
+        /* Poprawiona sekcja Nowa Fiszka */
+        .manager {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: var(--card-radius);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 35px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .learned-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            z-index: 10;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body id="body">
+<body>
 
-    <button class="theme-toggle" onclick="toggleDarkMode()" id="themeBtn">🌙</button>
+    <header>
+        <h2 style="margin:0; font-weight:700;">Fiszki Chemia</h2>
+        <button class="theme-toggle" onclick="toggleDarkMode()" id="themeBtn">🌙</button>
+    </header>
 
-    <div class="box">
-        <h3>Dodaj fiszkę / Import</h3>
-        <input type="file" id="imageInput" accept="image/*">
-        <input type="text" id="textInput" placeholder="Podpis (np. Ag2O)">
-        <button id="addBtn" onclick="addFlashcard()">+ Dodaj</button>
-        <div style="display: flex; gap: 5px; margin-top: 5px;">
-            <button style="background:#27ae60; font-size: 0.8rem;" onclick="exportToFile()">Export</button>
-            <button style="background:#7f8c8d; font-size: 0.8rem;" onclick="document.getElementById('importInput').click()">Import</button>
-        </div>
-        <input type="file" id="importInput" class="hidden" accept=".json" onchange="importFromFile(event)">
+    <div class="progress-container">
+        <div id="progressBar"></div>
     </div>
+    
+    <div id="counterText">Wgraj fiszki, aby zacząć</div>
 
     <div id="player" class="flashcard-container" onclick="flip()">
+        <div id="learnedIcon" class="learned-badge">✅</div>
         <div class="card" id="mainCard">
-            <div class="face front"><img id="displayImg" src=""></div>
-            <div class="face back"><p id="displayText"></p></div>
+            <div class="face front">
+                <img id="displayImg" src="">
+                <p style="font-size: 0.75rem; opacity: 0.5; margin-top: 15px;">Dotknij, aby zobaczyć odpowiedź</p>
+            </div>
+            <div class="face back">
+                <p id="displayText"></p>
+            </div>
         </div>
     </div>
 
     <div id="nav" class="controls hidden">
-        <button class="btn-small" onclick="changeCard(-1)">⬅</button>
-        <span id="counter" class="counter">1 / 1</span>
-        <button class="btn-small" onclick="changeCard(1)">➡</button>
-        <button class="btn-small" style="background:#e74c3c" onclick="deleteCurrent()">🗑</button>
+        <button class="btn" onclick="changeCard(-1)">⬅️</button>
+        <button class="btn" style="color:#34c759" id="markBtn" onclick="toggleLearned(event)">✅</button>
+        <button class="btn" onclick="shuffleCards()">🎲</button>
+        <button class="btn" onclick="changeCard(1)">➡️</button>
+    </div>
+
+    <div class="manager">
+        <h3 style="margin:0 0 10px 0; font-size: 1.1rem">Nowa Fiszka</h3>
+        <input type="file" id="imageInput" accept="image/*">
+        <input type="text" id="textInput" placeholder="Nazwa reakcji/związku">
+        <button class="btn btn-primary" style="width:100%" id="addBtn" onclick="addFlashcard()">Dodaj fiszkę</button>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px">
+            <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="exportToFile()">Zapisz JSON</button>
+            <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="document.getElementById('importInput').click()">Wczytaj JSON</button>
+        </div>
+        <input type="file" id="importInput" style="display:none" accept=".json" onchange="importFromFile(event)">
+        <button class="btn" style="width:100%; margin-top:10px; color:var(--danger); border: none;" onclick="deleteCurrent()">Usuń tę fiszkę</button>
     </div>
 
     <script>
         let flashcards = JSON.parse(localStorage.getItem('myFlashcards')) || [];
         let currentIndex = 0;
 
-        // TRYB CIEMNY LOGIKA
         if (localStorage.getItem('darkMode') === 'enabled') {
             document.body.classList.add('dark-mode');
             document.getElementById('themeBtn').innerText = '☀️';
@@ -201,26 +261,19 @@
             document.getElementById('themeBtn').innerText = isDark ? '☀️' : '🌙';
         }
 
-        // DODAWANIE Z KOMPRESJĄ
         async function addFlashcard() {
-            const fileInput = document.getElementById('imageInput');
-            const file = fileInput.files[0];
-            const textInput = document.getElementById('textInput');
-            const text = textInput.value;
+            const file = document.getElementById('imageInput').files[0];
+            const text = document.getElementById('textInput').value;
             const btn = document.getElementById('addBtn');
-
             if (file && text) {
-                btn.innerText = "Przetwarzanie...";
-                btn.disabled = true;
-                try {
-                    const compressedImg = await resizeImage(file);
-                    flashcards.push({ img: compressedImg, text: text });
-                    save();
-                    textInput.value = "";
-                    fileInput.value = "";
-                } catch (e) { alert("Błąd zapisu!"); }
-                finally { btn.innerText = "+ Dodaj"; btn.disabled = false; }
-            } else { alert("Wypełnij pola!"); }
+                btn.innerText = "Kompresja..."; btn.disabled = true;
+                const img = await resizeImage(file);
+                flashcards.push({ img, text, learned: false });
+                save();
+                document.getElementById('textInput').value = "";
+                document.getElementById('imageInput').value = "";
+                btn.innerText = "Dodaj fiszkę"; btn.disabled = false;
+            }
         }
 
         function resizeImage(file) {
@@ -230,11 +283,11 @@
                     const img = new Image();
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        let width = img.width, height = img.height, max = 800;
-                        if (width > height && width > max) { height *= max / width; width = max; }
-                        else if (height > max) { width *= max / height; height = max; }
-                        canvas.width = width; canvas.height = height;
-                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        let w = img.width, h = img.height, max = 800;
+                        if (w > h && w > max) { h *= max / w; w = max; }
+                        else if (h > max) { w *= max / h; h = max; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                     img.src = e.target.result;
@@ -243,39 +296,75 @@
             });
         }
 
+        function toggleLearned(e) {
+            e.stopPropagation();
+            flashcards[currentIndex].learned = !flashcards[currentIndex].learned;
+            save();
+        }
+
+        function shuffleCards() {
+            flashcards.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            render();
+        }
+
         function flip() { document.getElementById('mainCard').classList.toggle('flipped'); }
         function save() { localStorage.setItem('myFlashcards', JSON.stringify(flashcards)); render(); }
         
         function render() {
             const player = document.getElementById('player');
             const nav = document.getElementById('nav');
+            const bar = document.getElementById('progressBar');
+            const counter = document.getElementById('counterText');
+            
             if (flashcards.length > 0) {
                 player.style.display = "block";
                 nav.classList.remove('hidden');
-                document.getElementById('displayImg').src = flashcards[currentIndex].img;
-                document.getElementById('displayText').innerText = flashcards[currentIndex].text;
-                document.getElementById('counter').innerText = `${currentIndex + 1}/${flashcards.length}`;
+                
+                const card = flashcards[currentIndex];
+                document.getElementById('displayImg').src = card.img;
+                document.getElementById('displayText').innerText = card.text;
+                document.getElementById('learnedIcon').style.display = card.learned ? "block" : "none";
+                
+                // Licznik tekstowy
+                counter.innerText = `Fiszka ${currentIndex + 1} z ${flashcards.length}`;
+                
+                // Pasek postępu
+                const learnedCount = flashcards.filter(c => c.learned).length;
+                const progress = (learnedCount / flashcards.length) * 100;
+                bar.style.width = progress + "%";
+                
                 document.getElementById('mainCard').classList.remove('flipped');
-            } else { player.style.display = "none"; nav.classList.add('hidden'); }
+            } else {
+                player.style.display = "none";
+                nav.classList.add('hidden');
+                bar.style.width = "0%";
+                counter.innerText = "Dodaj fiszki, aby zacząć";
+            }
         }
 
-        function changeCard(step) {
-            currentIndex = (currentIndex + step + flashcards.length) % flashcards.length;
+        function changeCard(s) {
+            if (flashcards.length === 0) return;
+            currentIndex = (currentIndex + s + flashcards.length) % flashcards.length;
             render();
         }
-
+        
         function deleteCurrent() {
-            if(confirm("Usunąć?")) { flashcards.splice(currentIndex, 1); currentIndex = 0; save(); }
+            if(confirm("Na pewno usunąć tę fiszkę?")) {
+                flashcards.splice(currentIndex, 1);
+                if (currentIndex >= flashcards.length && currentIndex > 0) currentIndex--;
+                save();
+            }
         }
-
+        
         function exportToFile() {
             const blob = new Blob([JSON.stringify(flashcards)], {type: "application/json"});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fiszki.json'; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fiszki_chemia.json'; a.click();
         }
-
+        
         function importFromFile(e) {
             const reader = new FileReader();
-            reader.onload = (ev) => { flashcards = JSON.parse(ev.target.result); save(); };
+            reader.onload = (ev) => { flashcards = JSON.parse(ev.target.result); currentIndex = 0; save(); };
             reader.readAsText(e.target.files[0]);
         }
 
