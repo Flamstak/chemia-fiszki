@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fiszki Chemia | Dual Mode</title>
+    <title>Fiszki Chemia | Clean Study</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -36,6 +36,7 @@
             width: 44px; height: 44px; border-radius: 50%; cursor: pointer; 
             font-size: 1.2rem; display: flex; align-items: center; 
             justify-content: center; box-shadow: var(--shadow); 
+            color: var(--text);
         }
         
         .icon-btn.active { background: var(--primary); color: white; border: none; }
@@ -64,7 +65,50 @@
         .btn { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 18px; cursor: pointer; font-size: 1rem; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; color: var(--text); }
         .btn-primary { background: var(--primary); color: white; border: none; }
 
-        .manager { background: var(--surface); padding: 20px; border-radius: var(--card-radius); width: 100%; max-width: 400px; margin-top: 30px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        /* --- STYL DLA ROZWIJANEGO ZARZĄDZANIA --- */
+        .manager-wrapper {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+        }
+
+        .manager-toggle {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .manager-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .manager-content.open {
+            max-height: 1000px; /* Duża wartość, aby pomieścić formularz */
+            opacity: 1;
+            padding-top: 15px;
+        }
+
+        .manager-card { 
+            background: var(--surface); 
+            padding: 20px; 
+            border-radius: var(--card-radius); 
+            box-shadow: var(--shadow); 
+            border: 1px solid var(--border); 
+        }
+
         input[type="text"], input[type="file"] { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; }
         .learned-badge { position: absolute; top: 20px; right: 20px; font-size: 24px; z-index: 10; }
         .hidden { display: none !important; }
@@ -91,10 +135,8 @@
     <div id="player" class="flashcard-container" onclick="flip()">
         <div id="learnedIcon" class="learned-badge">✅</div>
         <div class="card" id="mainCard">
-            <div class="face" id="frontFace">
-                </div>
-            <div class="face back" id="backFace">
-                </div>
+            <div class="face" id="frontFace"></div>
+            <div class="face back" id="backFace"></div>
         </div>
     </div>
 
@@ -105,18 +147,26 @@
         <button class="btn" onclick="changeCard(1)">➡️</button>
     </div>
 
-    <div class="manager">
-        <h3 style="margin:0 0 10px 0; font-size: 1.1rem">Zarządzanie</h3>
-        <input type="file" id="imageInput" accept="image/*">
-        <input type="text" id="textInput" placeholder="Podpis karty">
-        <button class="btn btn-primary" style="width:100%" id="addBtn" onclick="addFlashcard()">Dodaj do zestawu</button>
+    <div class="manager-wrapper">
+        <button class="manager-toggle" onclick="toggleManager()">
+            ⚙️ Zarządzaj fiszkami <span id="managerArrow">▼</span>
+        </button>
         
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px">
-            <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="exportToFile()">Zapisz JSON</button>
-            <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="document.getElementById('importInput').click()">Wczytaj JSON</button>
+        <div id="managerContent" class="manager-content">
+            <div class="manager-card">
+                <h3 style="margin:0 0 10px 0; font-size: 1.1rem">Dodaj nową fiszkę</h3>
+                <input type="file" id="imageInput" accept="image/*">
+                <input type="text" id="textInput" placeholder="Podpis karty (np. Ag2O)">
+                <button class="btn btn-primary" style="width:100%" id="addBtn" onclick="addFlashcard()">Dodaj do zestawu</button>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px">
+                    <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="exportToFile()">Zapisz JSON</button>
+                    <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="document.getElementById('importInput').click()">Wczytaj JSON</button>
+                </div>
+                <input type="file" id="importInput" style="display:none" accept=".json" onchange="importFromFile(event)">
+                <button class="btn" style="width:100%; margin-top:10px; color:var(--danger); border: none;" onclick="deleteCurrent()">Usuń tę fiszkę</button>
+            </div>
         </div>
-        <input type="file" id="importInput" style="display:none" accept=".json" onchange="importFromFile(event)">
-        <button class="btn" style="width:100%; margin-top:10px; color:var(--danger); border: none;" onclick="deleteCurrent()">Usuń tę fiszkę</button>
     </div>
 
     <script>
@@ -126,12 +176,26 @@
         let searchQuery = "";
         let isReversed = localStorage.getItem('isReversed') === 'true';
 
-        // Inicjalizacja wyglądu
         if (localStorage.getItem('darkMode') === 'enabled') {
             document.body.classList.add('dark-mode');
             document.getElementById('themeBtn').innerText = '☀️';
         }
         if (isReversed) document.getElementById('reverseBtn').classList.add('active');
+
+        // FUNKCJA ROZWIJANIA MANAGERA
+        function toggleManager() {
+            const content = document.getElementById('managerContent');
+            const arrow = document.getElementById('managerArrow');
+            content.classList.toggle('open');
+            
+            if (content.classList.contains('open')) {
+                arrow.innerText = '▲';
+                // Automatyczne przewinięcie do panelu na małych ekranach
+                setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+            } else {
+                arrow.innerText = '▼';
+            }
+        }
 
         function toggleDarkMode() {
             const isDark = document.body.classList.toggle('dark-mode');
@@ -139,7 +203,6 @@
             document.getElementById('themeBtn').innerText = isDark ? '☀️' : '🌙';
         }
 
-        // --- NOWA FUNKCJA ODWRACANIA ---
         function toggleReverse() {
             isReversed = !isReversed;
             localStorage.setItem('isReversed', isReversed);
@@ -168,7 +231,7 @@
                         const canvas = document.createElement('canvas');
                         let w = img.width, h = img.height, max = 800;
                         if (w > h && w > max) { h *= max / w; w = max; }
-                        else if (h > max) { w *= max / h; h = max; }
+                        else if (h > max) { w *= max / h; height = max; }
                         canvas.width = w; canvas.height = h;
                         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
@@ -236,7 +299,6 @@
                 nav.classList.remove('hidden');
                 const card = filtered[currentIndex];
 
-                // --- LOGIKA WYŚWIETLANIA PRZÓD/TYŁ ---
                 const imgHTML = `<img src="${card.img}" class="face-img"><p class="hint">Kliknij, aby obrócić</p>`;
                 const textHTML = `<p class="face-text">${card.text}</p>`;
 
@@ -246,7 +308,6 @@
                 } else {
                     front.innerHTML = textHTML;
                     back.innerHTML = imgHTML;
-                    // W trybie odwróconym zmieniamy tło frontu dla czytelności tekstu
                     back.style.background = "var(--surface)"; 
                     back.style.color = "var(--text)";
                     front.style.background = "var(--primary)";
@@ -257,13 +318,13 @@
                 counter.innerText = `${showOnlyUnlearned ? 'TRUDNE' : 'WSZYSTKIE'} | ${isReversed ? 'TEKST → ZDJ' : 'ZDJ → TEKST'} | ${currentIndex + 1}/${filtered.length}`;
                 
                 const totalLearned = flashcards.filter(c => c.learned).length;
-                bar.style.width = ((totalLearned / flashcards.length) * 100) + "%";
+                bar.style.width = flashcards.length > 0 ? ((totalLearned / flashcards.length) * 100) + "%" : "0%";
                 document.getElementById('mainCard').classList.remove('flipped');
             } else {
                 player.style.display = "none";
                 nav.classList.add('hidden');
                 bar.style.width = "0%";
-                counter.innerText = flashcards.length === 0 ? "Wczytaj plik JSON" : "Brak kart w tym filtrze";
+                counter.innerText = flashcards.length === 0 ? "Otwórz panel zarządzania, aby dodać fiszki" : "Brak kart w tym filtrze";
             }
         }
 
