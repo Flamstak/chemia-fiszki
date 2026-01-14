@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Moje Fiszki Mobilne</title>
+    <title>Moje Fiszki Mobilne PRO</title>
     <style>
         :root {
             --bg: #f8f9fa;
@@ -20,7 +20,6 @@
             flex-direction: column;
             align-items: center;
             padding: 15px;
-            /* Zapobiega przesuwaniu strony "pod palcem" na niektórych telefonach */
             overscroll-behavior-y: contain;
         }
 
@@ -43,9 +42,8 @@
             margin: 5px 0;
             border-radius: 10px;
             border: 1px solid #ddd;
-            font-size: 16px; /* 16px zapobiega auto-zoomowi w iOS */
+            font-size: 16px;
             box-sizing: border-box;
-            /* Usuwa niebieskie podświetlenie przy dotyku na Androidzie */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -54,12 +52,12 @@
             color: white;
             border: none;
             font-weight: bold;
-            touch-action: manipulation; /* Usuwa 300ms opóźnienia dotyku */
+            touch-action: manipulation;
         }
 
         .flashcard-container {
             perspective: 1000px;
-            width: 90vw; /* Szerokość zależna od ekranu */
+            width: 90vw;
             max-width: 350px;
             height: 400px;
             display: none;
@@ -122,7 +120,7 @@
         <h3>Dodaj fiszkę / Import</h3>
         <input type="file" id="imageInput" accept="image/*">
         <input type="text" id="textInput" placeholder="Podpis (np. Ag2O)">
-        <button onclick="addFlashcard()">+ Dodaj</button>
+        <button id="addBtn" onclick="addFlashcard()">+ Dodaj</button>
         <div style="display: flex; gap: 5px; margin-top: 5px;">
             <button style="background:#27ae60; font-size: 0.8rem;" onclick="exportToFile()">Export</button>
             <button style="background:#7f8c8d; font-size: 0.8rem;" onclick="document.getElementById('importInput').click()">Import</button>
@@ -148,25 +146,72 @@
         let flashcards = JSON.parse(localStorage.getItem('myFlashcards')) || [];
         let currentIndex = 0;
 
-        function addFlashcard() {
-            const file = document.getElementById('imageInput').files[0];
-            const text = document.getElementById('textInput').value;
+        // NOWA FUNKCJA Z KOMPRESJĄ
+        async function addFlashcard() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value;
+            const btn = document.getElementById('addBtn');
+
             if (file && text) {
+                btn.innerText = "Przetwarzanie...";
+                btn.disabled = true;
+
+                try {
+                    const compressedImg = await resizeImage(file);
+                    flashcards.push({ img: compressedImg, text: text });
+                    save();
+                    textInput.value = "";
+                    fileInput.value = "";
+                } catch (error) {
+                    alert("Błąd podczas dodawania. Spróbuj mniejszego zdjęcia.");
+                } finally {
+                    btn.innerText = "+ Dodaj";
+                    btn.disabled = false;
+                }
+            } else {
+                alert("Wybierz zdjęcie i wpisz opis!");
+            }
+        }
+
+        // FUNKCJA ZMNIEJSZAJĄCA ZDJĘCIE
+        function resizeImage(file) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    flashcards.push({ img: e.target.result, text: text });
-                    save();
-                    document.getElementById('textInput').value = "";
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const max_size = 800; // Zmniejszamy do max 800px
+
+                        if (width > height) {
+                            if (width > max_size) { height *= max_size / width; width = max_size; }
+                        } else {
+                            if (height > max_size) { width *= max_size / height; height = max_size; }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Jakość 70% - idealna na telefon
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
-            }
+            });
         }
 
         function flip() { document.getElementById('mainCard').classList.toggle('flipped'); }
 
         function save() {
-            localStorage.setItem('myFlashcards', JSON.stringify(flashcards));
-            render();
+            try {
+                localStorage.setItem('myFlashcards', JSON.stringify(flashcards));
+                render();
+            } catch (e) {
+                alert("Pamięć pełna! Usuń kilka starych fiszek.");
+            }
         }
 
         function render() {
@@ -191,7 +236,11 @@
         }
 
         function deleteCurrent() {
-            if(confirm("Usunąć?")) { flashcards.splice(currentIndex, 1); currentIndex = 0; save(); }
+            if(confirm("Usunąć tę fiszkę?")) { 
+                flashcards.splice(currentIndex, 1); 
+                if (currentIndex >= flashcards.length) currentIndex = 0;
+                save(); 
+            }
         }
 
         function exportToFile() {
@@ -204,8 +253,11 @@
         function importFromFile(e) {
             const reader = new FileReader();
             reader.onload = (event) => {
-                flashcards = JSON.parse(event.target.result);
-                save();
+                try {
+                    flashcards = JSON.parse(event.target.result);
+                    save();
+                    alert("Zaimportowano pomyślnie!");
+                } catch(err) { alert("Błąd pliku!"); }
             };
             reader.readAsText(e.target.files[0]);
         }
