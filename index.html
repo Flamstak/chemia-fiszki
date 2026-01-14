@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fiszki Chemia | Clean Study</title>
+    <title>Fiszki Chemia | Fix Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,15 +28,13 @@
         }
 
         header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
         .header-actions { display: flex; gap: 10px; }
 
         .icon-btn { 
             background: var(--surface); border: 1px solid var(--border); 
             width: 44px; height: 44px; border-radius: 50%; cursor: pointer; 
             font-size: 1.2rem; display: flex; align-items: center; 
-            justify-content: center; box-shadow: var(--shadow); 
-            color: var(--text);
+            justify-content: center; box-shadow: var(--shadow); color: var(--text);
         }
         
         .icon-btn.active { background: var(--primary); color: white; border: none; }
@@ -50,64 +48,38 @@
         .filter-btn { padding: 10px 15px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.85rem; color: var(--text); box-shadow: var(--shadow); white-space: nowrap; }
         .filter-btn.active { background: var(--danger); color: white; border: none; }
 
-        .flashcard-container { perspective: 1200px; width: 100%; max-width: 380px; height: 400px; display: none; }
+        .flashcard-container { perspective: 1200px; width: 100%; max-width: 380px; height: 400px; display: none; margin-bottom: 15px; }
         .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
         .card.flipped { transform: rotateY(180deg); }
 
-        .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--card-radius); background: var(--surface); padding: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; }
+        .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--card-radius); background: var(--surface); padding: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; overflow: hidden; }
         .face.back { transform: rotateY(180deg); background: var(--primary); color: white; border: none; }
         
         .face-text { font-size: 1.6rem; font-weight: 700; margin: 0; }
-        .face-img { max-width: 100%; max-height: 85%; border-radius: 12px; object-fit: contain; }
+        /* POPRAWKA CSS DLA OBRAZKÓW */
+        .face-img { 
+            max-width: 100%; 
+            max-height: 85%; 
+            width: auto;
+            height: auto;
+            border-radius: 12px; 
+            object-fit: contain; 
+        }
         .hint { font-size: 0.75rem; opacity: 0.5; margin-top: 15px; }
+
+        /* Quiz UI */
+        #quizOptions { width: 100%; max-width: 380px; display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 15px; }
+        .opt-btn { background: var(--surface); border: 1px solid var(--border); padding: 12px; border-radius: 14px; color: var(--text); text-align: left; cursor: pointer; font-size: 0.9rem; box-shadow: var(--shadow); }
 
         .controls { margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 400px; }
         .btn { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 18px; cursor: pointer; font-size: 1rem; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; color: var(--text); }
         .btn-primary { background: var(--primary); color: white; border: none; }
 
-        /* --- STYL DLA ROZWIJANEGO ZARZĄDZANIA --- */
-        .manager-wrapper {
-            width: 100%;
-            max-width: 400px;
-            margin-top: 20px;
-        }
-
-        .manager-toggle {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            box-shadow: var(--shadow);
-        }
-
-        .manager-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, opacity 0.3s ease;
-            opacity: 0;
-        }
-
-        .manager-content.open {
-            max-height: 1000px; /* Duża wartość, aby pomieścić formularz */
-            opacity: 1;
-            padding-top: 15px;
-        }
-
-        .manager-card { 
-            background: var(--surface); 
-            padding: 20px; 
-            border-radius: var(--card-radius); 
-            box-shadow: var(--shadow); 
-            border: 1px solid var(--border); 
-        }
+        .manager-wrapper { width: 100%; max-width: 400px; margin-top: 20px; }
+        .manager-toggle { width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 12px; border-radius: 16px; cursor: pointer; font-weight: 600; color: var(--text); display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: var(--shadow); }
+        .manager-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, opacity 0.3s ease; opacity: 0; }
+        .manager-content.open { max-height: 1000px; opacity: 1; padding-top: 15px; }
+        .manager-card { background: var(--surface); padding: 20px; border-radius: var(--card-radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
 
         input[type="text"], input[type="file"] { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; }
         .learned-badge { position: absolute; top: 20px; right: 20px; font-size: 24px; z-index: 10; }
@@ -119,6 +91,7 @@
     <header>
         <h2 style="margin:0; font-weight:700;">Fiszki Chemia</h2>
         <div class="header-actions">
+            <button class="icon-btn" onclick="toggleQuiz()" id="quizBtn" title="Tryb Quizu">📝</button>
             <button class="icon-btn" onclick="toggleReverse()" id="reverseBtn" title="Odwróć strony">🔄</button>
             <button class="icon-btn" onclick="toggleDarkMode()" id="themeBtn">🌙</button>
         </div>
@@ -140,6 +113,8 @@
         </div>
     </div>
 
+    <div id="quizOptions" class="hidden"></div>
+
     <div id="nav" class="controls hidden">
         <button class="btn" onclick="changeCard(-1)">⬅️</button>
         <button class="btn" style="color:#34c759" id="markBtn" onclick="toggleLearned(event)">✅</button>
@@ -151,29 +126,24 @@
         <button class="manager-toggle" onclick="toggleManager()">
             ⚙️ Zarządzaj fiszkami <span id="managerArrow">▼</span>
         </button>
-        
         <div id="managerContent" class="manager-content">
             <div class="manager-card">
-                <h3 style="margin:0 0 10px 0; font-size: 1.1rem">Dodaj nową fiszkę</h3>
                 <input type="file" id="imageInput" accept="image/*">
-                <input type="text" id="textInput" placeholder="Podpis karty (np. Ag2O)">
-                <button class="btn btn-primary" style="width:100%" id="addBtn" onclick="addFlashcard()">Dodaj do zestawu</button>
-                
+                <input type="text" id="textInput" placeholder="Podpis karty">
+                <button class="btn btn-primary" style="width:100%" id="addBtn" onclick="addFlashcard()">Dodaj fiszkę</button>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px">
                     <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="exportToFile()">Zapisz JSON</button>
                     <button class="btn" style="font-size:0.75rem; padding: 10px;" onclick="document.getElementById('importInput').click()">Wczytaj JSON</button>
                 </div>
                 <input type="file" id="importInput" style="display:none" accept=".json" onchange="importFromFile(event)">
-                <button class="btn" style="width:100%; margin-top:10px; color:var(--danger); border: none;" onclick="deleteCurrent()">Usuń tę fiszkę</button>
+                <button class="btn" style="width:100%; margin-top:10px; color:var(--danger); border: none;" onclick="deleteCurrent()">Usuń fiszkę</button>
             </div>
         </div>
     </div>
 
     <script>
         let flashcards = JSON.parse(localStorage.getItem('myFlashcards')) || [];
-        let currentIndex = 0;
-        let showOnlyUnlearned = false;
-        let searchQuery = "";
+        let currentIndex = 0, showOnlyUnlearned = false, searchQuery = "", quizMode = false;
         let isReversed = localStorage.getItem('isReversed') === 'true';
 
         if (localStorage.getItem('darkMode') === 'enabled') {
@@ -182,19 +152,10 @@
         }
         if (isReversed) document.getElementById('reverseBtn').classList.add('active');
 
-        // FUNKCJA ROZWIJANIA MANAGERA
         function toggleManager() {
             const content = document.getElementById('managerContent');
-            const arrow = document.getElementById('managerArrow');
             content.classList.toggle('open');
-            
-            if (content.classList.contains('open')) {
-                arrow.innerText = '▲';
-                // Automatyczne przewinięcie do panelu na małych ekranach
-                setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
-            } else {
-                arrow.innerText = '▼';
-            }
+            document.getElementById('managerArrow').innerText = content.classList.contains('open') ? '▲' : '▼';
         }
 
         function toggleDarkMode() {
@@ -210,6 +171,12 @@
             render();
         }
 
+        function toggleQuiz() {
+            quizMode = !quizMode;
+            document.getElementById('quizBtn').classList.toggle('active');
+            render();
+        }
+
         async function addFlashcard() {
             const file = document.getElementById('imageInput').files[0];
             const text = document.getElementById('textInput').value;
@@ -222,6 +189,7 @@
             }
         }
 
+        /* POPRAWIONA FUNKCJA RESIZE - NAPRAWIA PROPORCJE */
         function resizeImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -231,10 +199,10 @@
                         const canvas = document.createElement('canvas');
                         let w = img.width, h = img.height, max = 800;
                         if (w > h && w > max) { h *= max / w; w = max; }
-                        else if (h > max) { w *= max / h; height = max; }
+                        else if (h > max) { w *= max / h; h = max; }
                         canvas.width = w; canvas.height = h;
                         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
                     };
                     img.src = e.target.result;
                 };
@@ -242,120 +210,59 @@
             });
         }
 
-        function toggleLearned(e) {
-            e.stopPropagation();
-            const filtered = getFilteredCards();
-            if (filtered.length === 0) return;
-            const cardInMain = flashcards.find(c => c.img === filtered[currentIndex].img);
-            cardInMain.learned = !cardInMain.learned;
-            const totalLearned = flashcards.filter(c => c.learned).length;
-            if (totalLearned === flashcards.length && flashcards.length > 0) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            }
-            save();
-        }
-
-        function getFilteredCards() {
-            return flashcards.filter(card => {
-                const matchesSearch = card.text.toLowerCase().includes(searchQuery.toLowerCase());
-                const matchesFilter = showOnlyUnlearned ? !card.learned : true;
-                return matchesSearch && matchesFilter;
-            });
-        }
-
-        function handleSearch() {
-            searchQuery = document.getElementById('searchInput').value;
-            currentIndex = 0;
-            render();
-        }
-
-        function toggleFilter() {
-            showOnlyUnlearned = !showOnlyUnlearned;
-            document.getElementById('filterLearnedBtn').classList.toggle('active');
-            currentIndex = 0;
-            render();
-        }
-
-        function shuffleCards() {
-            flashcards.sort(() => Math.random() - 0.5);
-            currentIndex = 0;
-            render();
-        }
-
-        function flip() { document.getElementById('mainCard').classList.toggle('flipped'); }
-        function save() { localStorage.setItem('myFlashcards', JSON.stringify(flashcards)); render(); }
-        
         function render() {
-            const filtered = getFilteredCards();
-            const player = document.getElementById('player');
-            const nav = document.getElementById('nav');
-            const bar = document.getElementById('progressBar');
-            const counter = document.getElementById('counterText');
-            const front = document.getElementById('frontFace');
-            const back = document.getElementById('backFace');
+            const filtered = flashcards.filter(c => {
+                const mSearch = c.text.toLowerCase().includes(searchQuery.toLowerCase());
+                const mFilter = showOnlyUnlearned ? !c.learned : true;
+                return mSearch && mFilter;
+            });
             
-            if (filtered.length > 0) {
-                player.style.display = "block";
-                nav.classList.remove('hidden');
-                const card = filtered[currentIndex];
+            const player = document.getElementById('player'), nav = document.getElementById('nav');
+            const front = document.getElementById('frontFace'), back = document.getElementById('backFace');
+            const qDiv = document.getElementById('quizOptions');
+            qDiv.innerHTML = ""; qDiv.classList.add('hidden');
 
+            if (filtered.length > 0) {
+                player.style.display = "block"; nav.classList.remove('hidden');
+                const card = filtered[currentIndex];
                 const imgHTML = `<img src="${card.img}" class="face-img"><p class="hint">Kliknij, aby obrócić</p>`;
                 const textHTML = `<p class="face-text">${card.text}</p>`;
 
-                if (!isReversed) {
-                    front.innerHTML = imgHTML;
-                    back.innerHTML = textHTML;
-                } else {
-                    front.innerHTML = textHTML;
-                    back.innerHTML = imgHTML;
-                    back.style.background = "var(--surface)"; 
-                    back.style.color = "var(--text)";
-                    front.style.background = "var(--primary)";
-                    front.style.color = "white";
+                if (!isReversed) { front.innerHTML = imgHTML; back.innerHTML = textHTML; }
+                else { 
+                    front.innerHTML = textHTML; back.innerHTML = imgHTML; 
+                    front.style.background = "var(--primary)"; front.style.color = "white";
+                    back.style.background = "var(--surface)"; back.style.color = "var(--text)";
+                }
+
+                if (quizMode && !isReversed) {
+                    qDiv.classList.remove('hidden');
+                    let opts = [card.text, ...flashcards.filter(x => x.text !== card.text).map(x => x.text).sort(()=>.5-Math.random()).slice(0,3)].sort(()=>.5-Math.random());
+                    opts.forEach(o => {
+                        const b = document.createElement('button'); b.className = 'opt-btn'; b.innerText = o;
+                        b.onclick = () => { if(o === card.text) { confetti(); toggleLearned(); } else b.style.background = "var(--danger)"; };
+                        qDiv.appendChild(b);
+                    });
                 }
 
                 document.getElementById('learnedIcon').style.display = card.learned ? "block" : "none";
-                counter.innerText = `${showOnlyUnlearned ? 'TRUDNE' : 'WSZYSTKIE'} | ${isReversed ? 'TEKST → ZDJ' : 'ZDJ → TEKST'} | ${currentIndex + 1}/${filtered.length}`;
-                
-                const totalLearned = flashcards.filter(c => c.learned).length;
-                bar.style.width = flashcards.length > 0 ? ((totalLearned / flashcards.length) * 100) + "%" : "0%";
+                document.getElementById('counterText').innerText = `Fiszka ${currentIndex + 1}/${filtered.length}`;
+                const done = flashcards.filter(c => c.learned).length;
+                document.getElementById('progressBar').style.width = (done/flashcards.length*100) + "%";
                 document.getElementById('mainCard').classList.remove('flipped');
-            } else {
-                player.style.display = "none";
-                nav.classList.add('hidden');
-                bar.style.width = "0%";
-                counter.innerText = flashcards.length === 0 ? "Otwórz panel zarządzania, aby dodać fiszki" : "Brak kart w tym filtrze";
-            }
+            } else { player.style.display = "none"; nav.classList.add('hidden'); document.getElementById('counterText').innerText = "Brak kart"; }
         }
 
-        function changeCard(s) {
-            const filtered = getFilteredCards();
-            if (filtered.length === 0) return;
-            currentIndex = (currentIndex + s + filtered.length) % filtered.length;
-            render();
-        }
-        
-        function deleteCurrent() {
-            const filtered = getFilteredCards();
-            if (filtered.length === 0) return;
-            if(confirm("Usunąć tę fiszkę?")) {
-                const cardToDelete = filtered[currentIndex];
-                flashcards = flashcards.filter(c => c.img !== cardToDelete.img);
-                if (currentIndex >= getFilteredCards().length && currentIndex > 0) currentIndex--;
-                save();
-            }
-        }
-        
-        function exportToFile() {
-            const blob = new Blob([JSON.stringify(flashcards)], {type: "application/json"});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fiszki_chemia.json'; a.click();
-        }
-        
-        function importFromFile(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => { flashcards = JSON.parse(ev.target.result); currentIndex = 0; save(); };
-            reader.readAsText(e.target.files[0]);
-        }
+        function toggleLearned(e) { if(e) e.stopPropagation(); const f = flashcards.filter(c => showOnlyUnlearned ? !c.learned : true); flashcards.find(x => x.img === f[currentIndex].img).learned = true; save(); if(currentIndex >= f.length-1) currentIndex=0; }
+        function flip() { document.getElementById('mainCard').classList.toggle('flipped'); }
+        function changeCard(s) { const f = flashcards.filter(c => showOnlyUnlearned ? !c.learned : true); currentIndex = (currentIndex + s + f.length) % f.length; render(); }
+        function save() { localStorage.setItem('myFlashcards', JSON.stringify(flashcards)); render(); }
+        function shuffleCards() { flashcards.sort(()=>.5-Math.random()); currentIndex=0; render(); }
+        function handleSearch() { searchQuery = document.getElementById('searchInput').value; currentIndex=0; render(); }
+        function toggleFilter() { showOnlyUnlearned = !showOnlyUnlearned; document.getElementById('filterLearnedBtn').classList.toggle('active'); currentIndex=0; render(); }
+        function exportToFile() { const blob = new Blob([JSON.stringify(flashcards)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='fiszki.json'; a.click(); }
+        function importFromFile(e) { const r = new FileReader(); r.onload = ev => { flashcards = JSON.parse(ev.target.result); save(); }; r.readAsText(e.target.files[0]); }
+        function deleteCurrent() { if(confirm("Usunąć?")) { const f = flashcards.filter(c => showOnlyUnlearned ? !c.learned : true); flashcards = flashcards.filter(c => c.img !== f[currentIndex].img); save(); } }
 
         render();
     </script>
